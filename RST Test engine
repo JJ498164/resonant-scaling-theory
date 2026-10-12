@@ -1,0 +1,28 @@
+"""
+Tests for src/rst_engine.py using synthetic data only.
+Run:  python validation/test_rst_engine.py     (or: pytest validation/)
+These tests check that the code computes what it says it computes.
+They do NOT validate RST as a theory.
+"""
+import os
+import sys
+
+import numpy as np
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+import rst_engine as rst  # noqa: E402
+
+FS = 250
+RNG = np.random.default_rng(42)
+
+
+def make_channels(n_ch, seconds, shared_amp, noise_amp=1.0, f=39.0):
+    """n_ch channels = shared f-Hz source * shared_amp + independent noise."""
+    t = np.arange(int(seconds * FS)) / FS
+    src = np.sin(2 * np.pi * f * t + 0.3)
+    return np.array([shared_amp * src + noise_amp * RNG.standard_normal(t.size)
+                     for _ in range(n_ch)])
+
+
+def test_laplacian_rows_sum_to_zero_and_lambda1_is_zero():
+    W = np.array([[0, 1, 2], [1, 0, 3], [2, 3, 0]], float)
